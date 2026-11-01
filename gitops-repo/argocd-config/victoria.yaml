@@ -30,11 +30,16 @@ spec:
       - CreateNamespace=true
       - ServerSideApply=true
   ignoreDifferences:
-  - group: operator.victoriametrics.com
-    kind: VMSingle
-    jsonPointers:
-    - /status
-  - group: ""
-    kind: Secret
-    jsonPointers:
-    - /data
+    - group: operator.victoriametrics.com
+      kind: VMSingle
+      jsonPointers:
+        - /status
+    - group: ""
+      kind: Secret
+      jsonPointers:
+        - /data
+    - group: ""
+      kind: ConfigMap
+      name: victoria-metrics-victoria-metrics-k8s-stack-node-exporter-full
+      jsonPointers:
+        - /metadata/annotations
