@@ -1,0 +1,35 @@
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMServiceScrape
+metadata:
+  name: argocd-metrics
+  namespace: monitoring
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: argocd-metrics
+  namespaceSelector:
+    matchNames:
+      - argocd
+  endpoints:
+    - port: metrics
+---
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMServiceScrape
+metadata:
+  name: backend-metrics
+  namespace: monitoring
+  labels:
+    release: victoria-metrics
+spec:
+  selector:
+    matchLabels:
+      app: lab1-backend
+  namespaceSelector:
+    matchNames:
+      - default
+  endpoints:
+    - port: http-metrics
+      path: /metrics
+      relabelConfigs:                # <-- Bổ sung từ dòng này
+        - targetLabel: job
+          replacement: lab1-backend

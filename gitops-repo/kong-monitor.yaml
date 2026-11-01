@@ -1,0 +1,18 @@
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMServiceScrape
+metadata:
+  name: kong-metrics
+  namespace: monitoring
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: kong
+  namespaceSelector:
+    matchNames:
+      - kong
+  endpoints:
+    - port: metrics
+      interval: 15s
+      relabelConfigs:
+        - targetLabel: job
+          replacement: kong

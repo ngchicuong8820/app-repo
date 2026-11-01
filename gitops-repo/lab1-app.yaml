@@ -1,0 +1,118 @@
+# yaml-language-server: $schema=https://json.schemastore.org/any.json
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: lab1-backend
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: lab1-backend
+  template:
+    metadata:
+      labels:
+        app: lab1-backend
+    spec:
+      containers:
+      - name: lab1-backend
+    image: ngchicuong8820/lab1-app:v21 # Giữ nguyên image hiện tại của bạn
+    env:
+      - name: DB_PASSWORD
+        valueFrom:
+          secretKeyRef:
+            name: backend-env-secret
+            key: DB_PASSWORD
+      - name: backend
+        image: ngchicuong8820/lab1-app:v21
+        imagePullPolicy: IfNotPresent
+        command: ["sh", "-c", "cd /app/backend && uvicorn main:app --host 0.0.0.0 --port 8000"]
+        ports:
+        - containerPort: 8000
+        env:
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: backend-env-secret
+              key: DB_PASSWORD
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: lab1-backend
+  namespace: default
+  labels:                     # <-- BỔ SUNG DÒNG NÀY
+    app: lab1-backend         # <-- BỔ SUNG DÒNG NÀY
+spec:
+  selector:
+    app: lab1-backend
+  ports:
+    - name: http-metrics
+      port: 8000
+      targetPort: 8000
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: lab1-frontend
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: lab1-frontend
+  template:
+    metadata:
+      labels:
+        app: lab1-frontend
+    spec:
+      containers:
+      - name: frontend
+        image: ngchicuong8820/lab1-app:v21
+        imagePullPolicy: IfNotPresent
+        command: ["sh", "-c", "cd /app/frontend && streamlit run app.py --server.port 8501 --server.address 0.0.0.0"]
+        ports:
+        - containerPort: 8501
+        env:
+        - name: BACKEND_URL
+          value: "http://lab1-backend:8000"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: lab1-frontend
+  namespace: default
+spec:
+  selector:
+    app: lab1-frontend
+  ports:
+  - port: 8501
+    targetPort: 8501
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: lab1-ingress
+  namespace: default
+  annotations:
+    konghq.com/plugins: global-rate-limit
+    kubernetes.io/ingress.class: kong
+spec:
+  ingressClassName: kong
+  rules:
+  - http:
+      paths:
+      - path: /api
+        pathType: Prefix
+        backend:
+          service:
+            name: lab1-backend
+            port:
+              number: 8000
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: lab1-frontend
+            port:
+              number: 8501

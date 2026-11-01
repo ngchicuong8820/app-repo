@@ -1,0 +1,33 @@
+apiVersion: external-secrets.io/v1beta1
+kind: SecretStore
+metadata:
+  name: vault-backend
+  namespace: default
+spec:
+  provider:
+    vault:
+      server: "http://vault.vault.svc.cluster.local:8200"
+      path: "secret"
+      version: "v2"
+      auth:
+        tokenSecretRef:
+          name: "vault-token"
+          key: "token"
+---
+apiVersion: external-secrets.io/v1beta1
+kind: ExternalSecret
+metadata:
+  name: backend-db-secret
+  namespace: default
+spec:
+  refreshInterval: "15s" # Cứ 15s kiểm tra Vault 1 lần
+  secretStoreRef:
+    name: vault-backend
+    kind: SecretStore
+  target:
+    name: backend-env-secret # Tên K8s Secret mà ESO sẽ tự động đẻ ra
+  data:
+  - secretKey: DB_PASSWORD
+    remoteRef:
+      key: "lab1/backend"
+      property: DB_PASSWORD

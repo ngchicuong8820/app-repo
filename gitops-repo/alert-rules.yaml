@@ -1,0 +1,17 @@
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMRule
+metadata:
+  name: backend-health-alert
+  namespace: monitoring
+spec:
+  groups:
+    - name: backend-alerts
+      rules:
+        - alert: BackendServiceDown
+          expr: up{job="lab1-backend"} == 0
+          for: 1m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Cảnh báo: Backend ngừng hoạt động!"
+            description: "Dịch vụ lab1-backend đã mất kết nối hoặc bị sập trong hơn 1 phút qua."
