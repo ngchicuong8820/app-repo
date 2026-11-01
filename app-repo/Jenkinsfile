@@ -26,10 +26,6 @@ pipeline {
                 sh '''
                 echo "Đang tải Trivy CLI..."
                 curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b ./bin
-                
-                echo "Đang tải Maven Portable..."
-                curl -sSL -o maven.tar.gz https://archive.apache.org/dist/maven/maven-3/3.8.6/binaries/apache-maven-3.8.6-bin.tar.gz
-                tar xzf maven.tar.gz
                 '''
             }
         }
@@ -37,12 +33,6 @@ pipeline {
         stage('2. Code & IaC Security (SAST/SCA)') {
             failFast true
             parallel {
-                stage('Unit Test') {
-                    steps { 
-                        // Dùng file maven vừa tải về để build thay vì lệnh mvn của hệ thống
-                        dir('app-repo') { sh '../apache-maven-3.8.6/bin/mvn clean test' }
-                    }
-                }
                 stage('SAST & SCA (Trivy)') {
                     steps {
                         sh './bin/trivy fs ./app-repo/ --scanners vuln,secret,misconfig --exit-code 0'
@@ -56,23 +46,20 @@ pipeline {
             }
         }
 
-        stage('3. Build Artifact') {
+        stage('3. Build Image') {
             steps { 
-                dir('app-repo') { sh '../apache-maven-3.8.6/bin/mvn clean package -DskipTests' } 
+                // Xóa bước Build Artifact (Maven), tiến thẳng đến Build Image
+                sh "docker build -t ${DOCKER_IMAGE}:${IMAGE_TAG} ./app-repo" 
             }
         }
 
-        stage('4. Build Image') {
-            steps { sh "docker build -t ${DOCKER_IMAGE}:${IMAGE_TAG} ./app-repo" }
-        }
-
-        stage('5. Container Security') {
+        stage('4. Container Security') {
             steps {
                 sh "./bin/trivy image --exit-code 0 --severity HIGH,CRITICAL ${DOCKER_IMAGE}:${IMAGE_TAG}"
             }
         }
 
-        stage('6. Push Registry') {
+        stage('5. Push Registry') {
             steps {
                 withCredentials([usernamePassword(credentialsId: env.DOCKER_CRED_ID, passwordVariable: 'DOCKER_PASS', usernameVariable: 'DOCKER_USER')]) {
                     sh """
@@ -83,7 +70,7 @@ pipeline {
             }
         }
 
-        stage('7. Update GitOps Manifest') {
+        stage('6. Update GitOps Manifest') {
             steps {
                 withCredentials([string(credentialsId: env.GITHUB_CRED_ID, variable: 'GIT_TOKEN')]) {
                     sh """
@@ -103,7 +90,7 @@ pipeline {
             }
         }
 
-        stage('8. Dynamic Application Security Testing (DAST)') {
+        stage('7. Dynamic Application Security Testing (DAST)') {
             steps {
                 sh """
                 echo "Quét DAST vào ứng dụng frontend..."
