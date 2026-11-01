@@ -1,4 +1,3 @@
-# yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/argoproj.io/application_v1alpha1.json
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -10,15 +9,6 @@ spec:
     repoURL: 'https://victoriametrics.github.io/helm-charts/'
     chart: victoria-metrics-k8s-stack
     targetRevision: 0.35.0
-    helm:
-      values: |
-        grafana:
-          enabled: true
-        prometheus-node-exporter:
-          hostRootFsMount:
-            enabled: false
-        kubeControllerManager:
-          enabled: false
   destination:
     server: 'https://kubernetes.default.svc'
     namespace: monitoring
@@ -32,6 +22,10 @@ spec:
   ignoreDifferences:
     - group: operator.victoriametrics.com
       kind: VMSingle
+      jsonPointers:
+        - /status
+    - group: operator.victoriametrics.com
+      kind: VMAlertmanager
       jsonPointers:
         - /status
     - group: ""
