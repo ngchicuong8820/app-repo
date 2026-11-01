@@ -89,12 +89,14 @@ pipeline {
                     git clone https://oauth2:\${GIT_TOKEN}@github.com/ngchicuong8820/Lab_1.git lab1-temp
                     cd lab1-temp
 
-                    sed -i "s|image: ${DOCKER_IMAGE}:.*|image: ${DOCKER_IMAGE}:${IMAGE_TAG}|g" gitops-repo/deployment.yaml
+                    # Thay thế tag mới cho cả backend và frontend trong file manifest chuẩn
+                    sed -i "s|image: ${DOCKER_IMAGE_BACKEND}:.*|image: ${DOCKER_IMAGE_BACKEND}:${IMAGE_TAG}|g" apps/lab1-app.yaml
+                    sed -i "s|image: ${DOCKER_IMAGE_FRONTEND}:.*|image: ${DOCKER_IMAGE_FRONTEND}:${IMAGE_TAG}|g" apps/lab1-app.yaml
 
                     git config user.name "Jenkins DevSecOps Bot"
                     git config user.email "jenkins@lab.local"
-                    git add gitops-repo/
-                    git commit -m "chore: release ${IMAGE_TAG} [skip ci]"
+                    git add apps/lab1-app.yaml
+                    git commit -m "chore: release ${IMAGE_TAG} [skip ci]" || echo "Không có thay đổi nào để commit"
                     git push origin HEAD:main
                     """
                 }
