@@ -22,6 +22,9 @@ spec:
           enabled: false
         kubeEtcd:
           enabled: false
+        # Tắt bớt các thành phần sinh ConfigMap quá khổ không cần thiết
+        kubeStateMetrics:
+          enabled: true
   destination:
     server: 'https://kubernetes.default.svc'
     namespace: monitoring
