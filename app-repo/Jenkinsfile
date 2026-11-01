@@ -86,16 +86,18 @@ pipeline {
             steps {
                 withCredentials([string(credentialsId: env.GITHUB_CRED_ID, variable: 'GIT_TOKEN')]) {
                     sh """
-                    rm -rf lab1-temp
-                    git clone https://oauth2:\${GIT_TOKEN}@github.com/ngchicuong8820/Lab_1.git lab1-temp
-                    cd lab1-temp
+                    # Xóa thư mục tạm nếu có và clone repo GITOPS RIÊNG BIỆT
+                    rm -rf gitops-temp
+                    git clone https://oauth2:\${GIT_TOKEN}@github.com/ngchicuong8820/lab1-gitops.git gitops-temp
+                    cd gitops-temp
 
-                    # Thay thế tag mới trong file manifest chuẩn
-                    sed -i "s|image: ${DOCKER_IMAGE}:.*|image: ${DOCKER_IMAGE}:${IMAGE_TAG}|g" gitops-repo/apps/lab1-app.yaml
+                    # Thay thế tag mới trong file manifest (Lưu ý: Không còn tiền tố gitops-repo/ nữa)
+                    sed -i "s|image: ${DOCKER_IMAGE}:.*|image: ${DOCKER_IMAGE}:${IMAGE_TAG}|g" apps/lab1-app.yaml
 
+                    # Commit và push thay đổi lên repo GitOps riêng
                     git config user.name "Jenkins DevSecOps Bot"
                     git config user.email "jenkins@lab.local"
-                    git add gitops-repo/apps/lab1-app.yaml
+                    git add apps/lab1-app.yaml
                     git commit -m "chore: release ${IMAGE_TAG} [skip ci]" || echo "Không có thay đổi nào để commit"
                     git push origin HEAD:main
                     """
