@@ -53,7 +53,7 @@ pipeline {
                 }
                 stage('IaC Scan') {
                     steps {
-                        sh './bin/trivy config ./gitops-repo/ --exit-code 0 --severity HIGH,CRITICAL'
+                        sh './bin/trivy config ./app-repo/ --exit-code 0 --severity HIGH,CRITICAL'
                     }
                 }
             }
