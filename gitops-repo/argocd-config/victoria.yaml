@@ -29,3 +29,12 @@ spec:
     syncOptions:
       - CreateNamespace=true
       - ServerSideApply=true
+  ignoreDifferences:
+  - group: operator.victoriametrics.com
+    kind: VMSingle
+    jsonPointers:
+    - /status
+  - group: ""
+    kind: Secret
+    jsonPointers:
+    - /data
