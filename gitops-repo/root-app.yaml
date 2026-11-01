@@ -10,7 +10,7 @@ spec:
   source:
     repoURL: 'https://github.com/ngchicuong8820/Lab_1'
     targetRevision: HEAD
-    path: argocd-config  # Root app sẽ quét thư mục này để đẻ ra các App con
+    path: gitops-repo/argocd-config  # Root app sẽ quét thư mục này để đẻ ra các App con
   destination:
     server: 'https://kubernetes.default.svc'
     namespace: argocd
