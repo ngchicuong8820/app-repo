@@ -10,7 +10,7 @@ pipeline {
         // Chỉ dùng một image tổng theo cách bạn cấu hình
         DOCKER_IMAGE = "ngchicuong8820/lab1-app"
         IMAGE_TAG = "v${env.BUILD_NUMBER}"
-        GITOPS_REPO = "https://github.com/ngchicuong8820/Lab_1.git"
+        GITOPS_REPO = "https://github.com/ngchicuong8820/app-repo"
         APP_URL = "http://host.docker.internal:8501" 
         
         DOCKER_CRED_ID = 'docker-creds'
