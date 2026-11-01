@@ -37,3 +37,8 @@ spec:
       name: victoria-metrics-victoria-metrics-k8s-stack-node-exporter-full
       jsonPointers:
         - /metadata/annotations
+    - group: ""
+      kind: Service
+      jsonPointers:
+        - /metadata/annotations
+        - /metadata/labels
