@@ -10,7 +10,7 @@ pipeline {
         // Chỉ dùng một image tổng theo cách bạn cấu hình
         DOCKER_IMAGE = "ngchicuong8820/lab1-app"
         IMAGE_TAG = "v${env.BUILD_NUMBER}"
-        GITOPS_REPO = "https://github.com/ngchicuong8820/app-repo"
+        GITOPS_REPO = "https://github.com/ngchicuong8820/lab1-gitops.git"
         APP_URL = "http://host.docker.internal:8501" 
         
         DOCKER_CRED_ID = 'docker-creds'
@@ -48,12 +48,12 @@ pipeline {
             parallel {
                 stage('SAST & SCA (Trivy)') {
                     steps {
-                        sh './bin/trivy fs ./app-repo/ --scanners vuln,secret,misconfig --exit-code 0'
+                        sh './bin/trivy fs ./ --scanners vuln,secret,misconfig --exit-code 0'
                     }
                 }
                 stage('IaC Scan') {
                     steps {
-                        sh './bin/trivy config ./app-repo/ --exit-code 0 --severity HIGH,CRITICAL'
+                        sh './bin/trivy config ./ --exit-code 0 --severity HIGH,CRITICAL'
                     }
                 }
             }
@@ -61,7 +61,7 @@ pipeline {
 
         stage('3. Build Image') {
             steps { 
-                sh "./bin/docker build -t ${DOCKER_IMAGE}:${IMAGE_TAG} ./app-repo" 
+                sh "./bin/docker build -t ${DOCKER_IMAGE}:${IMAGE_TAG} ." 
             }
         }
 
