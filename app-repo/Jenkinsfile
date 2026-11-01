@@ -24,8 +24,20 @@ pipeline {
         stage('1.5. Prepare Tools') {
             steps {
                 sh '''
+                mkdir -p ./bin
                 echo "Đang tải Trivy CLI..."
                 curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b ./bin
+                
+                echo "Đang tải Docker CLI..."
+                ARCH=$(uname -m)
+                if [ "$ARCH" = "aarch64" ] || [ "$ARCH" = "arm64" ]; then
+                    curl -sSL -o docker.tgz https://download.docker.com/linux/static/stable/aarch64/docker-24.0.9.tgz
+                else
+                    curl -sSL -o docker.tgz https://download.docker.com/linux/static/stable/x86_64/docker-24.0.9.tgz
+                fi
+                tar -xzf docker.tgz
+                mv docker/docker ./bin/
+                chmod +x ./bin/docker
                 '''
             }
         }
@@ -48,8 +60,7 @@ pipeline {
 
         stage('3. Build Image') {
             steps { 
-                // Xóa bước Build Artifact (Maven), tiến thẳng đến Build Image
-                sh "docker build -t ${DOCKER_IMAGE}:${IMAGE_TAG} ./app-repo" 
+                sh "./bin/docker build -t ${DOCKER_IMAGE}:${IMAGE_TAG} ./app-repo" 
             }
         }
 
@@ -63,8 +74,8 @@ pipeline {
             steps {
                 withCredentials([usernamePassword(credentialsId: env.DOCKER_CRED_ID, passwordVariable: 'DOCKER_PASS', usernameVariable: 'DOCKER_USER')]) {
                     sh """
-                    echo \$DOCKER_PASS | docker login -u \$DOCKER_USER --password-stdin
-                    docker push ${DOCKER_IMAGE}:${IMAGE_TAG}
+                    echo \$DOCKER_PASS | ./bin/docker login -u \$DOCKER_USER --password-stdin
+                    ./bin/docker push ${DOCKER_IMAGE}:${IMAGE_TAG}
                     """
                 }
             }
@@ -94,7 +105,7 @@ pipeline {
             steps {
                 sh """
                 echo "Quét DAST vào ứng dụng frontend..."
-                docker run --rm -t owasp/zap2docker-stable zap-baseline.py -t ${APP_URL} -I || true
+                ./bin/docker run --rm -t owasp/zap2docker-stable zap-baseline.py -t ${APP_URL} -I || true
                 """
             }
         }
