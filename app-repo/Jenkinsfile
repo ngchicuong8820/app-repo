@@ -91,11 +91,11 @@ pipeline {
                     cd lab1-temp
 
                     # Thay thế tag mới trong file manifest chuẩn
-                    sed -i "s|image: ${DOCKER_IMAGE}:.*|image: ${DOCKER_IMAGE}:${IMAGE_TAG}|g" apps/lab1-app.yaml
+                    sed -i "s|image: ${DOCKER_IMAGE}:.*|image: ${DOCKER_IMAGE}:${IMAGE_TAG}|g" gitops-repo/apps/lab1-app.yaml
 
                     git config user.name "Jenkins DevSecOps Bot"
                     git config user.email "jenkins@lab.local"
-                    git add apps/lab1-app.yaml
+                    git add gitops-repo/apps/lab1-app.yaml
                     git commit -m "chore: release ${IMAGE_TAG} [skip ci]" || echo "Không có thay đổi nào để commit"
                     git push origin HEAD:main
                     """
