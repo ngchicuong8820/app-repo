@@ -84,22 +84,30 @@ pipeline {
 
         stage('6. Update GitOps Manifest') {
             steps {
+                // SỬA LỖI: Dùng string block cho Secret Text thay vì usernamePassword
                 withCredentials([string(credentialsId: env.GITHUB_CRED_ID, variable: 'GIT_TOKEN')]) {
                     sh """
-                    # Xóa thư mục tạm nếu có và clone repo GITOPS RIÊNG BIỆT
+                    # Khai báo thông tin user để commit
+                    git config --global user.name "Jenkins DevSecOps Bot"
+                    git config --global user.email "jenkins@lab.local"
+
+                    # Xóa thư mục tạm nếu có
                     rm -rf gitops-temp
-                    git clone https://oauth2:\${GIT_TOKEN}@github.com/ngchicuong8820/lab1-gitops.git gitops-temp
+
+                    # SỬA LỖI: URL xác thực đúng chuẩn để git clone
+                    git clone https://\${GIT_TOKEN}@github.com/ngchicuong8820/lab1-gitops.git gitops-temp
                     cd gitops-temp
 
-                    # Thay thế tag mới trong file manifest (Lưu ý: Không còn tiền tố gitops-repo/ nữa)
+                    # Thay thế tag mới trong file manifest
+                    # CHÚ Ý: Đảm bảo đường dẫn 'apps/lab1-app.yaml' thực sự tồn tại trong repo lab1-gitops
                     sed -i "s|image: ${DOCKER_IMAGE}:.*|image: ${DOCKER_IMAGE}:${IMAGE_TAG}|g" apps/lab1-app.yaml
 
-                    # Commit và push thay đổi lên repo GitOps riêng
-                    git config user.name "Jenkins DevSecOps Bot"
-                    git config user.email "jenkins@lab.local"
+                    # Commit và push thay đổi
                     git add apps/lab1-app.yaml
                     git commit -m "chore: release ${IMAGE_TAG} [skip ci]" || echo "Không có thay đổi nào để commit"
-                    git push origin HEAD:main
+                    
+                    # Push lên nhánh main
+                    git push https://\${GIT_TOKEN}@github.com/ngchicuong8820/lab1-gitops.git main
                     """
                 }
             }
